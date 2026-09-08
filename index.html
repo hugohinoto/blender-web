@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blender Web - 3D Modeling Suite</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="ui-container" class="ui-container">
+        <!-- トップバー -->
+        <div class="topbar">
+            <div class="logo">Blender Web</div>
+            <div class="menu-bar">
+                <div class="menu-item" onclick="toggleMenu('file-menu')">File</div>
+                <div class="menu-item" onclick="toggleMenu('edit-menu')">Edit</div>
+                <div class="menu-item" onclick="toggleMenu('mesh-menu')">Mesh</div>
+                <div class="menu-item" onclick="toggleMenu('object-menu')">Object</div>
+                <div class="menu-item" onclick="toggleMenu('shading-menu')">Shading</div>
+                <div class="menu-item" onclick="toggleMenu('help-menu')">Help</div>
+            </div>
+        </div>
+
+        <!-- メインレイアウト -->
+        <div class="main-layout">
+            <!-- 左パネル - アウトライナー -->
+            <div class="panel left-panel">
+                <div class="panel-header">Outliner</div>
+                <div class="panel-content">
+                    <div id="outliner" class="outliner">
+                        <div class="outliner-item" onclick="selectObject('Camera')">
+                            <span class="outliner-icon">📷</span> Camera
+                        </div>
+                        <div class="outliner-item" onclick="selectObject('Light')">
+                            <span class="outliner-icon">💡</span> Light
+                        </div>
+                        <div class="outliner-item" onclick="selectObject('Cube')">
+                            <span class="outliner-icon">📦</span> Cube
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 中央 - 3Dビューポート -->
+            <div class="viewport-container">
+                <div id="viewport" class="viewport"></div>
+                
+                <!-- ビューポートオーバーレイ -->
+                <div class="viewport-overlay">
+                    <div class="viewport-gizmo">
+                        <div class="gizmo-axis x-axis">X</div>
+                        <div class="gizmo-axis y-axis">Y</div>
+                        <div class="gizmo-axis z-axis">Z</div>
+                    </div>
+                    <div class="viewport-stats" id="viewport-stats">
+                        <div>FPS: <span id="fps">60</span></div>
+                        <div>Objects: <span id="object-count">3</span></div>
+                        <div>Selected: <span id="selected-name">None</span></div>
+                    </div>
+                </div>
+
+                <!-- ビューポート下部ツール -->
+                <div class="viewport-tools">
+                    <button class="tool-btn active" onclick="setTransformMode('move')" title="Move (G)">↔️</button>
+                    <button class="tool-btn" onclick="setTransformMode('rotate')" title="Rotate (R)">🔄</button>
+                    <button class="tool-btn" onclick="setTransformMode('scale')" title="Scale (S)">⬚</button>
+                    <button class="tool-btn" onclick="setShadeMode('solid')" title="Solid (Z)">○</button>
+                    <button class="tool-btn" onclick="setShadeMode('material')" title="Material Preview">◐</button>
+                    <button class="tool-btn" onclick="setShadeMode('rendered')" title="Rendered">●</button>
+                    <span class="separator"></span>
+                    <button class="tool-btn" onclick="toggleXray()" title="X-Ray (Alt+Z)">👁️</button>
+                    <button class="tool-btn" onclick="fitAll()" title="Frame All (Home)">⌂</button>
+                </div>
+            </div>
+
+            <!-- 右パネル - プロパティ -->
+            <div class="panel right-panel">
+                <div class="tabs">
+                    <div class="tab-button active" onclick="switchTab('properties')">Properties</div>
+                    <div class="tab-button" onclick="switchTab('shader')">Shaders</div>
+                    <div class="tab-button" onclick="switchTab('modifiers')">Modifiers</div>
+                </div>
+
+                <div class="tab-content">
+                    <!-- プロパティタブ -->
+                    <div id="properties-tab" class="tab-pane active">
+                        <div class="property-group">
+                            <div class="property-header">Transform</div>
+                            <div class="property-field">
+                                <label>Location X</label>
+                                <input type="number" id="loc-x" step="0.1" value="0" onchange="updateTransform()">
+                            </div>
+                            <div class="property-field">
+                                <label>Location Y</label>
+                                <input type="number" id="loc-y" step="0.1" value="0" onchange="updateTransform()">
+                            </div>
+                            <div class="property-field">
+                                <label>Location Z</label>
+                                <input type="number" id="loc-z" step="0.1" value="0" onchange="updateTransform()">
+                            </div>
+                        </div>
+
+                        <div class="property-group">
+                            <div class="property-header">Rotation</div>
+                            <div class="property-field">
+                                <label>Rotation X</label>
+                                <input type="number" id="rot-x" step="0.1" value="0" onchange="updateTransform()">
+                            </div>
+                            <div class="property-field">
+                                <label>Rotation Y</label>
+                                <input type="number" id="rot-y" step="0.1" value="0" onchange="updateTransform()">
+                            </div>
+                            <div class="property-field">
+                                <label>Rotation Z</label>
+                                <input type="number" id="rot-z" step="0.1" value="0" onchange="updateTransform()">
+                            </div>
+                        </div>
+
+                        <div class="property-group">
+                            <div class="property-header">Scale</div>
+                            <div class="property-field">
+                                <label>Scale X</label>
+                                <input type="number" id="scale-x" step="0.1" value="1" onchange="updateTransform()">
+                            </div>
+                            <div class="property-field">
+                                <label>Scale Y</label>
+                                <input type="number" id="scale-y" step="0.1" value="1" onchange="updateTransform()">
+                            </div>
+                            <div class="property-field">
+                                <label>Scale Z</label>
+                                <input type="number" id="scale-z" step="0.1" value="1" onchange="updateTransform()">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- シェーダータブ -->
+                    <div id="shader-tab" class="tab-pane">
+                        <div class="property-group">
+                            <div class="property-header">Material</div>
+                            <div class="property-field">
+                                <label>Base Color</label>
+                                <input type="color" id="base-color" value="#0099ff" onchange="updateMaterial()">
+                            </div>
+                            <div class="property-field">
+                                <label>Metallic</label>
+                                <input type="range" id="metallic" min="0" max="1" step="0.01" value="0" onchange="updateMaterial()">
+                                <span id="metallic-value">0.00</span>
+                            </div>
+                            <div class="property-field">
+                                <label>Roughness</label>
+                                <input type="range" id="roughness" min="0" max="1" step="0.01" value="0.5" onchange="updateMaterial()">
+                                <span id="roughness-value">0.50</span>
+                            </div>
+                            <div class="property-field">
+                                <label>Emission</label>
+                                <input type="range" id="emission" min="0" max="2" step="0.01" value="0" onchange="updateMaterial()">
+                                <span id="emission-value">0.00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- モディファイアータブ -->
+                    <div id="modifiers-tab" class="tab-pane">
+                        <div class="property-group">
+                            <div class="property-header">Modifiers</div>
+                            <button class="add-btn" onclick="addModifier('subdivision')">Add Subdivision</button>
+                            <button class="add-btn" onclick="addModifier('bevel')">Add Bevel</button>
+                            <button class="add-btn" onclick="addModifier('mirror')">Add Mirror</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ボトムパネル - タイムライン -->
+        <div class="bottom-panel">
+            <div class="panel-header">Timeline</div>
+            <div class="timeline-content">
+                <input type="range" id="timeline-slider" min="0" max="250" value="0" class="timeline-slider">
+                <span id="frame-display">Frame: 0</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- メニュー -->
+    <div id="file-menu" class="context-menu" style="display:none;">
+        <div class="menu-item" onclick="newProject()">New</div>
+        <div class="menu-item" onclick="openProject()">Open</div>
+        <div class="menu-item" onclick="saveProject()">Save</div>
+        <div class="menu-item" onclick="exportProject()">Export</div>
+    </div>
+
+    <div id="edit-menu" class="context-menu" style="display:none;">
+        <div class="menu-item" onclick="undo()">Undo</div>
+        <div class="menu-item" onclick="redo()">Redo</div>
+        <div class="menu-item">---</div>
+        <div class="menu-item" onclick="duplicateSelected()">Duplicate</div>
+        <div class="menu-item" onclick="deleteSelected()">Delete</div>
+    </div>
+
+    <div id="mesh-menu" class="context-menu" style="display:none;">
+        <div class="menu-item" onclick="addObject('Cube')">Add Cube</div>
+        <div class="menu-item" onclick="addObject('Sphere')">Add Sphere</div>
+        <div class="menu-item" onclick="addObject('Cylinder')">Add Cylinder</div>
+        <div class="menu-item" onclick="addObject('Cone')">Add Cone</div>
+        <div class="menu-item" onclick="addObject('Plane')">Add Plane</div>
+    </div>
+
+    <div id="object-menu" class="context-menu" style="display:none;">
+        <div class="menu-item" onclick="toggleEditMode()">Toggle Edit Mode</div>
+        <div class="menu-item" onclick="applyTransforms()">Apply Transforms</div>
+    </div>
+
+    <div id="shading-menu" class="context-menu" style="display:none;">
+        <div class="menu-item" onclick="setSmoothShading()">Smooth Shading</div>
+        <div class="menu-item" onclick="setFlatShading()">Flat Shading</div>
+    </div>
+
+    <div id="help-menu" class="context-menu" style="display:none;">
+        <div class="menu-item" onclick="showHelp()">Help</div>
+        <div class="menu-item" onclick="showAbout()">About</div>
+    </div>
+
+    <!-- スクリプト -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="core.js"></script>
+    <script src="ui.js"></script>
+    <script src="tools.js"></script>
+    <script src="render.js"></script>
+</body>
+</html>
